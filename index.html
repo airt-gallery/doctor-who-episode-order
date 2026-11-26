@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; media-src data: blob:; connect-src 'none'; form-action 'none'; base-uri 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="airt-id" content="doctor-who-episode-order-tracker">
+<meta name="airt-version" content="1.0">
+<title>Doctor Who episode-order tracker</title>
+<style>
+:root{--bg:#eef0f6;--card:#fff;--ink:#1c2133;--soft:#5d6579;--line:#dde1ec;--acc:#4a3f9c;--gold:#e0a526;--ok:#1f8a52}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+header{max-width:560px;margin:0 auto;padding:14px 14px 2px}
+h1{margin:0;font-size:23px;letter-spacing:-.4px;line-height:1.12}
+.fan{display:inline-block;margin-top:5px;font-size:12px;font-weight:700;color:#7a5b00;background:#fff4cc;border:1px solid #ecd78a;border-radius:99px;padding:2px 9px}
+main{max-width:560px;margin:0 auto;padding:4px 12px 28px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:10px 12px;margin:8px 0}
+button{font:inherit;border:0;cursor:pointer}
+.prog{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.prog b{font-size:28px;font-weight:900;letter-spacing:-.5px}
+.prog span{font-size:14px;color:var(--soft);font-weight:700}
+.bar{height:10px;background:#e6e8f2;border-radius:9px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--gold));border-radius:9px;transition:width .35s}
+.next{margin-top:8px;font-size:15px}
+.next b{color:var(--acc)}
+.done-all{color:var(--ok);font-weight:800}
+.seg{display:flex;background:#e3e6f0;border-radius:14px;padding:4px;gap:4px}
+.seg button{flex:1;min-height:44px;border-radius:11px;background:transparent;font-weight:800;font-size:15px;color:var(--soft)}
+.seg button.on{background:var(--acc);color:#fff;box-shadow:0 1px 3px rgba(0,0,0,.15)}
+.tip{font-size:13px;color:var(--soft);margin:7px 2px 0}
+h2{display:flex;justify-content:space-between;align-items:baseline;font-size:16px;margin:16px 4px 6px}
+h2 small{font-size:13px;color:var(--soft);font-weight:800}
+h2.full small{color:var(--ok)}
+.ep{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:10px;margin:0 0 8px;cursor:pointer;transition:background .2s}
+.ep.seen{background:#f0f8f3;border-color:#bfe3cc}
+.ep.up{box-shadow:0 0 0 3px var(--gold)}
+.num{width:36px;height:36px;border-radius:11px;background:#e5e3f4;color:var(--acc);font-weight:900;font-size:16px;display:flex;align-items:center;justify-content:center;flex:none}
+.seen .num{background:#d6efe0;color:var(--ok)}
+.mid{flex:1;min-width:0}
+.ti{font-weight:800;font-size:16.5px;line-height:1.2}
+.seen .ti{color:#3c5a48}
+.meta{font-size:12.5px;color:var(--soft);font-weight:700;margin-top:2px}
+.blurb{font-size:13.5px;color:var(--soft);margin-top:3px}
+.tick{width:46px;height:46px;border-radius:14px;border:2px solid #c9cfdd;background:#fff;flex:none;font-size:24px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center}
+.seen .tick{background:var(--ok);border-color:var(--ok)}
+.pop{animation:pp .45s}
+@keyframes pp{0%{transform:scale(1)}35%{transform:scale(1.15)}100%{transform:scale(1)}}
+.empty{text-align:center;color:var(--ok);font-weight:800;padding:18px 8px}
+#reset{width:100%;min-height:48px;border-radius:14px;background:#fff;border:2px solid #cfd5e5;color:var(--acc);font-weight:800;font-size:16px}
+#reset.sure{background:#b42f2f;border-color:#b42f2f;color:#fff}
+.parent{font-size:13px;color:#5b4a12;background:#fff8e0;border:1px solid #f0e0a8;border-radius:14px;padding:8px 11px;margin:10px 0 0}
+.note{font-size:12.5px;color:var(--soft);text-align:center;margin:14px 6px 0;line-height:1.45}
+</style>
+</head>
+<body>
+<header>
+ <h1>Doctor Who episode-order tracker</h1><span class="fan">Unofficial fan reference</span>
+</header>
+<main>
+ <div class="card" id="progress">
+  <div class="prog"><b id="count">0 of 27</b><span id="pct">0% watched</span></div>
+  <div class="bar"><i id="fill" style="width:0"></i></div>
+  <div class="next" id="next"></div>
+ </div>
+ <div class="card">
+  <div class="seg" id="seg">
+   <button type="button" data-v="all">All episodes</button>
+   <button type="button" data-v="todo">Still to watch</button>
+  </div>
+  <p class="tip">A family-friendly starter order: a few fun episodes for each Doctor since 2005, in the order they first aired.</p>
+ </div>
+ <div id="list"></div>
+ <h2>Start again</h2>
+ <button id="reset" type="button">Clear all ticks</button>
+ <p class="parent">For parents: most episodes suit family viewing, but some have scary moments. Check one first if your kids are young.</p>
+ <p class="note">An unofficial fan reference made for fun, in our own words. Episode titles and first UK air dates are listed as facts. Doctor Who is a trade mark of the British Broadcasting Corporation (BBC). Not affiliated with or endorsed by the BBC. Your ticks are saved on this device only.</p>
+</main>
+<script>
+(function(){
+"use strict";
+var KEY="doctor-who-episode-order-tracker-data";
+// Titles, first UK air dates and series are facts; the one-line notes are our own words.
+var DOCTORS=[
+ {id:"d9",t:"Ninth Doctor"},{id:"d10",t:"Tenth Doctor"},{id:"d11",t:"Eleventh Doctor"},{id:"d12",t:"Twelfth Doctor"},
+ {id:"d13",t:"Thirteenth Doctor"},{id:"d14",t:"Fourteenth Doctor"},{id:"d15",t:"Fifteenth Doctor"}
+];
+var EPS=[
+ {id:"e01",d:"d9",t:"Rose",a:"26 Mar 2005",s:"Series 1",n:"A shop worker in London meets a mysterious stranger, and her life changes for good."},
+ {id:"e02",d:"d9",t:"The End of the World",a:"2 Apr 2005",s:"Series 1",n:"A trip billions of years into the future to watch the Earth's very last day."},
+ {id:"e03",d:"d9",t:"The Unquiet Dead",a:"9 Apr 2005",s:"Series 1",n:"Victorian Cardiff at Christmas, a famous author, and some strange glowing visitors."},
+ {id:"e04",d:"d9",t:"Dalek",a:"30 Apr 2005",s:"Series 1",n:"A lone enemy machine is found locked away in an underground collection."},
+ {id:"e05",d:"d10",t:"The Christmas Invasion",a:"25 Dec 2005",s:"Christmas special",n:"A brand-new Doctor sleeps through Christmas while visitors arrive in the sky."},
+ {id:"e06",d:"d10",t:"The Girl in the Fireplace",a:"6 May 2006",s:"Series 2",n:"A spaceship has doorways into the life of a young woman in 1700s France."},
+ {id:"e07",d:"d10",t:"The Shakespeare Code",a:"7 Apr 2007",s:"Series 3",n:"Elizabethan London, a busy theatre and a famous playwright with writer's block."},
+ {id:"e08",d:"d10",t:"The Unicorn and the Wasp",a:"17 May 2008",s:"Series 4",n:"A 1920s country-house mystery with a famous crime writer."},
+ {id:"e09",d:"d11",t:"The Eleventh Hour",a:"3 Apr 2010",s:"Series 5",n:"A new Doctor crash-lands in a village garden and meets a young girl."},
+ {id:"e10",d:"d11",t:"Vincent and the Doctor",a:"5 Jun 2010",s:"Series 5",n:"A visit to a great painter in 1890 France, and a creature only he can see."},
+ {id:"e11",d:"d11",t:"Dinosaurs on a Spaceship",a:"8 Sep 2012",s:"Series 7",n:"Just what it says: a spaceship full of dinosaurs, heading for Earth."},
+ {id:"e12",d:"d11",t:"The Day of the Doctor",a:"23 Nov 2013",s:"50th anniversary special",n:"A big birthday story where different Doctors team up."},
+ {id:"e13",d:"d12",t:"Deep Breath",a:"23 Aug 2014",s:"Series 8",n:"A newly changed Doctor in Victorian London, with a dinosaur in the river."},
+ {id:"e14",d:"d12",t:"Robot of Sherwood",a:"6 Sep 2014",s:"Series 8",n:"A trip to Sherwood Forest to find out whether a legendary outlaw was real."},
+ {id:"e15",d:"d12",t:"The Husbands of River Song",a:"25 Dec 2015",s:"Christmas special",n:"A Christmas caper with an old friend who doesn't recognise the Doctor."},
+ {id:"e16",d:"d12",t:"Thin Ice",a:"29 Apr 2017",s:"Series 10",n:"A frost fair on the frozen River Thames in 1814, with something under the ice."},
+ {id:"e17",d:"d13",t:"The Woman Who Fell to Earth",a:"7 Oct 2018",s:"Series 11",n:"A new Doctor drops into Sheffield and gathers a new group of friends."},
+ {id:"e18",d:"d13",t:"Rosa",a:"21 Oct 2018",s:"Series 11",n:"A trip to 1955 Alabama to protect a famous stand for civil rights."},
+ {id:"e19",d:"d13",t:"Kerblam!",a:"18 Nov 2018",s:"Series 11",n:"A mystery parcel leads to a giant delivery warehouse in space."},
+ {id:"e20",d:"d13",t:"Nikola Tesla's Night of Terror",a:"19 Jan 2020",s:"Series 12",n:"A brilliant inventor in 1903, and visitors who want his work for themselves."},
+ {id:"e21",d:"d14",t:"The Star Beast",a:"25 Nov 2023",s:"60th anniversary special",n:"A small furry creature crash-lands in London and needs some help."},
+ {id:"e22",d:"d14",t:"Wild Blue Yonder",a:"2 Dec 2023",s:"60th anniversary special",n:"Stranded on an empty spaceship at the very edge of the universe."},
+ {id:"e23",d:"d14",t:"The Giggle",a:"9 Dec 2023",s:"60th anniversary special",n:"A toymaker's game, and a strange laugh coming out of every screen."},
+ {id:"e24",d:"d15",t:"The Church on Ruby Road",a:"25 Dec 2023",s:"Christmas special",n:"A Christmas adventure with a young woman who was found on a church doorstep."},
+ {id:"e25",d:"d15",t:"Space Babies",a:"11 May 2024",s:"2024 series",n:"A space station where the babies are running the show."},
+ {id:"e26",d:"d15",t:"The Robot Revolution",a:"12 Apr 2025",s:"2025 series",n:"A young woman is carried off to a far planet run by robots."},
+ {id:"e27",d:"d15",t:"Lux",a:"19 Apr 2025",s:"2025 series",n:"A 1950s cinema in Miami, and a cartoon villain made of light."}
+];
+var TOTAL=EPS.length, st=load(), sureTimer=null;
+function blank(){return {view:"all",seen:{}};}
+function ep(id){for(var i=0;i<EPS.length;i++)if(EPS[i].id===id)return EPS[i];}
+function load(){
+ try{var d=JSON.parse(localStorage.getItem(KEY)||"null");
+  if(d&&d.seen&&typeof d.seen==="object"&&!Array.isArray(d.seen)){
+   var r={};EPS.forEach(function(e){if(d.seen[e.id]===true)r[e.id]=true;});
+   return {view:d.view==="todo"?"todo":"all",seen:r};}
+ }catch(e){}
+ return blank();
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(st));}catch(e){}}
+function $(id){return document.getElementById(id);}
+function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function seenCount(list){return (list||EPS).filter(function(e){return st.seen[e.id];}).length;}
+function nextId(){for(var i=0;i<EPS.length;i++)if(!st.seen[EPS[i].id])return EPS[i].id;return null;}
+function render(pop){
+ var n=seenCount(), nx=nextId(), html="";
+ Array.prototype.forEach.call($("seg").children,function(b){b.classList.toggle("on",b.dataset.v===st.view);});
+ $("count").textContent=n+" of "+TOTAL;
+ $("pct").textContent=Math.round(n/TOTAL*100)+"% watched";
+ $("fill").style.width=(n/TOTAL*100)+"%";
+ $("next").innerHTML=nx?'Up next: <b>'+esc(ep(nx).t)+'</b>':'<span class="done-all">All '+TOTAL+' watched. Well done!</span>';
+ DOCTORS.forEach(function(d){
+  var all=EPS.filter(function(e){return e.d===d.id;}), k=seenCount(all);
+  var show=all.filter(function(e){return st.view==="all"||!st.seen[e.id];});
+  if(!show.length)return;
+  html+='<h2 data-doc="'+d.id+'"'+(k===all.length?' class="full"':'')+'>'+esc(d.t)+'<small>'+k+' of '+all.length+'</small></h2>';
+  show.forEach(function(e){var r=!!st.seen[e.id],i=EPS.indexOf(e)+1;
+   html+='<div class="ep'+(r?" seen":"")+(e.id===nx?" up":"")+'" data-id="'+e.id+'" role="checkbox" aria-checked="'+r+'" tabindex="0">'+
+    '<div class="num">'+i+'</div><div class="mid"><div class="ti">'+esc(e.t)+'</div>'+
+    '<div class="meta">'+esc(e.s)+' · first aired '+esc(e.a)+(e.id===nx?' · up next':'')+'</div><div class="blurb">'+esc(e.n)+'</div></div>'+
+    '<div class="tick'+(pop===e.id?" pop":"")+'">'+(r?"✓":"")+'</div></div>';});
+ });
+ if(!html)html='<div class="empty">Nothing left to watch. Time to pick your next adventure!</div>';
+ $("list").innerHTML=html;
+}
+function toggle(id){if(!ep(id))return;if(st.seen[id])delete st.seen[id];else st.seen[id]=true;save();render(id);}
+function setView(v){st.view=v==="todo"?"todo":"all";save();render();}
+function resetAll(){st={view:"all",seen:{}};save();render();}
+document.addEventListener("click",function(ev){
+ var b=ev.target.closest("button");
+ if(b&&b.dataset.v){setView(b.dataset.v);return;}
+ if(b&&b.id==="reset"){
+  if(b.classList.contains("sure")){clearTimeout(sureTimer);b.classList.remove("sure");b.textContent="Clear all ticks";resetAll();}
+  else{b.classList.add("sure");b.textContent="Tap again to clear all "+TOTAL;sureTimer=setTimeout(function(){b.classList.remove("sure");b.textContent="Clear all ticks";},4000);}
+  return;
+ }
+ var e=ev.target.closest(".ep"); if(e)toggle(e.dataset.id);
+});
+document.addEventListener("keydown",function(ev){
+ var e=ev.target.closest&&ev.target.closest(".ep");
+ if(e&&(ev.key===" "||ev.key==="Enter")){ev.preventDefault();var id=e.dataset.id;toggle(id);var el=document.querySelector('.ep[data-id="'+id+'"]');if(el)el.focus();}
+});
+window.WhoTracker={
+ toggle:toggle,setView:setView,reset:resetAll,next:nextId,
+ state:function(){return JSON.parse(JSON.stringify(st));},
+ example:function(){var r={};["e01","e02","e03","e04","e05","e06","e07"].forEach(function(id){r[id]=true;});st={view:"all",seen:r};save();render();},
+ clearAll:function(){try{localStorage.removeItem(KEY);}catch(e){}st=blank();render();}
+};
+render();
+})();
+</script>
+</body>
+</html>
